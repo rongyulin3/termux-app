@@ -244,6 +244,14 @@ public final class TerminalView extends View {
             public void onLongPress(MotionEvent event) {
                 if (mGestureRecognizer.isInProgress()) return;
                 if (mClient.onLongPress(event)) return;
+                if (mEmulator != null && mEmulator.isMouseTrackingActive() && !event.isFromSource(InputDevice.SOURCE_MOUSE) && !isSelectingText()) {
+                    // Long press = right click while the terminal app tracks the mouse (e.g. herdr/tmux context menus).
+                    // GestureAndScaleRecognizer already skips onUp after a long press, so no stray left click follows.
+                    performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                    sendMouseEventCode(event, TerminalEmulator.MOUSE_RIGHT_BUTTON, true);
+                    sendMouseEventCode(event, TerminalEmulator.MOUSE_RIGHT_BUTTON, false);
+                    return;
+                }
                 if (!isSelectingText()) {
                     performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                     startTextSelectionMode(event);
